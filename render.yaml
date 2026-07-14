@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: smart-energy-advisor
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+    envVars:
+      - key: IBM_CLOUD_API_KEY
+        sync: false          # set manually in Render dashboard
+      - key: IBM_WATSONX_PROJECT_ID
+        sync: false
+      - key: IBM_WATSONX_URL
+        value: https://au-syd.ml.cloud.ibm.com
+      - key: FLASK_SECRET_KEY
+        generateValue: true
+      - key: FLASK_DEBUG
+        value: "False"

@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>⚡ Smart Home Energy Advisor — Powered by IBM Granite</title>
+
+  <!-- Bootstrap 5.3 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!-- Custom CSS -->
+  <link href="/static/css/style.css" rel="stylesheet" />
+</head>
+
+<body>
+
+<!-- ══════════════════════════════════════════════
+     TOP NAVBAR
+══════════════════════════════════════════════ -->
+<nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+  <div class="container-fluid px-3 px-lg-4">
+    <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+      <div class="brand-icon"><i class="bi bi-lightning-charge-fill"></i></div>
+      <div>
+        <span class="brand-name">{{ agent_name }}</span>
+        <span class="brand-sub d-none d-sm-inline"> · Smart Energy Advisor</span>
+      </div>
+    </a>
+
+    <div class="d-flex align-items-center gap-2 ms-auto">
+      <!-- Status pill -->
+      <div class="status-pill" id="connectionStatus">
+        <span class="status-dot"></span>
+        <span class="status-text d-none d-sm-inline">Connecting…</span>
+      </div>
+
+      <!-- Dark mode toggle -->
+      <button class="btn-icon" id="themeToggle" title="Toggle Dark Mode">
+        <i class="bi bi-moon-stars-fill" id="themeIcon"></i>
+      </button>
+
+      <!-- Mobile menu -->
+      <button class="navbar-toggler btn-icon" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+        <i class="bi bi-list"></i>
+      </button>
+    </div>
+
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav ms-auto gap-1 py-2 py-lg-0">
+        <li class="nav-item"><a class="nav-link" href="#" onclick="showSection('dashboard')"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="#" onclick="showSection('chat')"><i class="bi bi-chat-dots me-1"></i>AI Chat</a></li>
+        <li class="nav-item"><a class="nav-link" href="#" onclick="showSection('bill')"><i class="bi bi-receipt me-1"></i>Bill Analyzer</a></li>
+        <li class="nav-item"><a class="nav-link" href="#" onclick="showSection('appliance')"><i class="bi bi-plug me-1"></i>Appliances</a></li>
+        <li class="nav-item"><a class="nav-link" href="#" onclick="showSection('carbon')"><i class="bi bi-tree me-1"></i>Carbon</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════
+     HERO BANNER
+══════════════════════════════════════════════ -->
+<section class="hero-banner" id="heroBanner">
+  <div class="container text-center py-5">
+    <div class="hero-badge mb-3 animate-fade-in">⚡ Powered by IBM Granite AI</div>
+    <h1 class="hero-title animate-slide-up">Smart Home Energy Advisor</h1>
+    <p class="hero-sub animate-slide-up delay-1">
+      AI-powered electricity analysis, bill estimation, and personalised energy-saving tips<br class="d-none d-md-block"/>
+      for Indian households — built on IBM Watsonx.ai
+    </p>
+    <div class="d-flex justify-content-center gap-3 flex-wrap animate-slide-up delay-2">
+      <button class="btn btn-hero-primary" onclick="showSection('chat')">
+        <i class="bi bi-chat-dots-fill me-2"></i>Ask {{ agent_name }}
+      </button>
+      <button class="btn btn-hero-outline" onclick="showSection('dashboard')">
+        <i class="bi bi-bar-chart-line me-2"></i>View Dashboard
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     KPI STRIP
+══════════════════════════════════════════════ -->
+<section class="kpi-strip" id="kpiStrip">
+  <div class="container-fluid px-3 px-lg-5">
+    <div class="row g-3 justify-content-center">
+      <div class="col-6 col-md-3">
+        <div class="kpi-card animate-pop delay-1">
+          <i class="bi bi-lightning-charge kpi-icon text-warning"></i>
+          <div class="kpi-value" id="kpiUnits">—</div>
+          <div class="kpi-label">Units This Month</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="kpi-card animate-pop delay-2">
+          <i class="bi bi-currency-rupee kpi-icon text-success"></i>
+          <div class="kpi-value" id="kpiBill">—</div>
+          <div class="kpi-label">Estimated Bill</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="kpi-card animate-pop delay-3">
+          <i class="bi bi-tree kpi-icon text-info"></i>
+          <div class="kpi-value" id="kpiCarbon">—</div>
+          <div class="kpi-label">CO₂ Emitted (kg)</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="kpi-card animate-pop delay-4">
+          <i class="bi bi-graph-down-arrow kpi-icon text-danger"></i>
+          <div class="kpi-value" id="kpiSavings">—</div>
+          <div class="kpi-label">Potential Savings</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════
+     MAIN CONTENT SECTIONS
+══════════════════════════════════════════════ -->
+<main class="main-content container-fluid px-3 px-lg-5 py-4">
+
+  <!-- ── DASHBOARD SECTION ─────────────────────── -->
+  <section id="dashboard" class="content-section active">
+    <div class="section-header mb-4">
+      <h2><i class="bi bi-speedometer2 me-2"></i>Energy Dashboard</h2>
+      <p class="text-muted">Monitor your home's electricity consumption at a glance</p>
+    </div>
+    <div class="row g-4">
+      <!-- Monthly consumption chart -->
+      <div class="col-lg-8">
+        <div class="card-panel h-100">
+          <div class="card-panel-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-bar-chart-fill me-2 text-primary"></i>Monthly Consumption (kWh)</h5>
+            <select class="form-select form-select-sm w-auto" id="dashboardYear" onchange="updateDashboardCharts()">
+              <option value="2024">2024</option>
+              <option value="2025" selected>2025</option>
+            </select>
+          </div>
+          <div class="chart-container">
+            <canvas id="monthlyChart"></canvas>
+          </div>
+        </div>
+      </div>
+      <!-- Appliance breakdown donut -->
+      <div class="col-lg-4">
+        <div class="card-panel h-100">
+          <div class="card-panel-header">
+            <h5 class="mb-0"><i class="bi bi-pie-chart-fill me-2 text-warning"></i>Appliance Share</h5>
+          </div>
+          <div class="chart-container-sm">
+            <canvas id="applianceDonut"></canvas>
+          </div>
+        </div>
+      </div>
+      <!-- Daily pattern line chart -->
+      <div class="col-lg-6">
+        <div class="card-panel">
+          <div class="card-panel-header">
+            <h5 class="mb-0"><i class="bi bi-activity me-2 text-success"></i>Daily Usage Pattern</h5>
+          </div>
+          <div class="chart-container">
+            <canvas id="dailyPattern"></canvas>
+          </div>
+        </div>
+      </div>
+      <!-- Bill trend -->
+      <div class="col-lg-6">
+        <div class="card-panel">
+          <div class="card-panel-header">
+            <h5 class="mb-0"><i class="bi bi-cash-stack me-2 text-danger"></i>Bill Trend (₹)</h5>
+          </div>
+          <div class="chart-container">
+            <canvas id="billTrend"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CHAT SECTION ──────────────────────────── -->
+  <section id="chat" class="content-section">
+    <div class="section-header mb-4">
+      <h2><i class="bi bi-chat-dots me-2"></i>Ask {{ agent_name }}</h2>
+      <p class="text-muted">Your AI-powered electricity advisor — ask anything about energy, bills, or savings</p>
+    </div>
+    <div class="row g-4 justify-content-center">
+      <div class="col-lg-10 col-xl-8">
+        <!-- Chat window -->
+        <div class="chat-window">
+          <div class="chat-header">
+            <div class="d-flex align-items-center gap-3">
+              <div class="agent-avatar"><i class="bi bi-lightning-charge-fill"></i></div>
+              <div>
+                <div class="fw-600">{{ agent_name }}</div>
+                <div class="chat-status text-success"><span class="online-dot"></span> Online</div>
+              </div>
+            </div>
+            <button class="btn-icon" onclick="clearChat()" title="Clear chat">
+              <i class="bi bi-trash3"></i>
+            </button>
+          </div>
+
+          <div class="chat-messages" id="chatMessages">
+            <!-- Welcome message injected by JS -->
+          </div>
+
+          <!-- Quick prompts -->
+          <div class="quick-prompts px-3 pb-2" id="quickPrompts">
+            <div class="quick-prompts-label">Quick questions:</div>
+            <div class="d-flex flex-wrap gap-2">
+              <button class="chip" onclick="sendQuickPrompt('How can I reduce my electricity bill?')">💡 Reduce bill</button>
+              <button class="chip" onclick="sendQuickPrompt('Which AC temperature is most energy efficient?')">❄️ AC tips</button>
+              <button class="chip" onclick="sendQuickPrompt('What are BEE star ratings?')">⭐ BEE ratings</button>
+              <button class="chip" onclick="sendQuickPrompt('Is solar panel a good investment for my home?')">☀️ Solar ROI</button>
+              <button class="chip" onclick="sendQuickPrompt('How to calculate my monthly electricity bill?')">🧮 Bill calc</button>
+              <button class="chip" onclick="sendQuickPrompt('What is peak hour electricity usage?')">⏰ Peak hours</button>
+            </div>
+          </div>
+
+          <!-- Input area -->
+          <div class="chat-input-area">
+            <div class="input-group">
+              <textarea
+                id="chatInput"
+                class="form-control chat-textarea"
+                placeholder="Ask about electricity, appliances, solar, bills, savings…"
+                rows="1"
+                onkeydown="handleChatKey(event)"
+                oninput="autoResize(this)"
+              ></textarea>
+              <button class="btn btn-send" id="sendBtn" onclick="sendMessage()">
+                <i class="bi bi-send-fill"></i>
+              </button>
+            </div>
+            <div class="input-hint">Press Enter to send · Shift+Enter for new line</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── BILL ANALYZER SECTION ─────────────────── -->
+  <section id="bill" class="content-section">
+    <div class="section-header mb-4">
+      <h2><i class="bi bi-receipt me-2"></i>Electricity Bill Analyzer</h2>
+      <p class="text-muted">Enter your meter readings and get a detailed bill breakdown with AI insights</p>
+    </div>
+    <div class="row g-4">
+      <!-- Input form -->
+      <div class="col-lg-5">
+        <div class="card-panel">
+          <div class="card-panel-header">
+            <h5 class="mb-0"><i class="bi bi-input-cursor me-2"></i>Enter Details</h5>
+          </div>
+          <div class="p-3">
+            <div class="mb-3">
+              <label class="form-label fw-500">State / DISCOM</label>
+              <select class="form-select" id="billState">
+                <option value="">Select your state…</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-500">Billing Month</label>
+              <select class="form-select" id="billMonth">
+                <option>January</option><option>February</option><option>March</option>
+                <option>April</option><option>May</option><option>June</option>
+                <option>July</option><option>August</option><option>September</option>
+                <option>October</option><option>November</option><option selected>December</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-500">Units Consumed (kWh)</label>
+              <input type="number" class="form-control" id="billUnits" placeholder="e.g. 350" min="0" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-500">Previous Month Units (kWh)</label>
+              <input type="number" class="form-control" id="billPrevUnits" placeholder="e.g. 300" min="0" />
+            </div>
+            <button class="btn btn-primary w-100 btn-animate" onclick="analyzeBill()">
+              <i class="bi bi-calculator me-2"></i>Analyse Bill
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results panel -->
+      <div class="col-lg-7">
+        <div class="card-panel h-100" id="billResults" style="display:none;">
+          <div class="card-panel-header">
+            <h5 class="mb-0"><i class="bi bi-clipboard-data me-2"></i>Bill Breakdown</h5>
+          </div>
+          <div class="p-3">
+            <!-- Summary row -->
+            <div class="row g-3 mb-4" id="billSummaryRow"></div>
+            <!-- Slab table -->
+            <h6 class="fw-600 mb-2">Tariff Slab Breakdown</h6>
+            <div class="table-responsive mb-4">
+              <table class="table table-sm table-striped" id="slabTable">
+                <thead><tr><th>Slab</th><th>Units</th><th>Rate (₹)</th><th>Cost (₹)</th></tr></thead>
+                <tbody id="slabTableBody"></tbody>
+              </table>
+            </div>
+            <!-- Bill chart -->
+            <div class="chart-container-sm">
+              <canvas id="billSlabChart"></canvas>
+            </div>
+          </div>
+        </div>
+        <!-- AI Analysis -->
+        <div class="card-panel mt-4" id="billAiPanel" style="display:none;">
+          <div class="card-panel-header">
+            <h5 class="mb-0"><i class="bi bi-robot me-2 text-primary"></i>AI Energy Analysis</h5>
+          </div>
+          <div class="p-3 ai-response-box" id="billAiText"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── APPLIANCE TRACKER SECTION ─────────────── -->
+  <section id="appliance" class="content-section">
+    <div class="section-header mb-4">
+      <h2><i class="bi bi-plug me-2"></i>Appliance Usage Tracker</h2>
+      <p class="text-muted">Fill in the appliance details below, then click <strong>Calculate Consumption</strong> — it will auto-add and calculate instantly.</p>
+    </div>
+    <div class="row g-4">
+      <!-- Appliance selector -->
+      <div class="col-lg-5">
+        <div class="card-panel">
+          <div class="card-panel-header">
+            <h5 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Add Appliance</h5>
+          </div>
+          <div class="p-3">
+            <div class="mb-3">
+              <label class="form-label fw-500">State</label>
+              <select class="form-select" id="applianceState">
+                <option value="">Select state…</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-500">Appliance</label>
+              <select class="form-select" id="applianceSelect">
+                <option value="">Select appliance…</option>
+              </select>
+            </div>
+            <div class="row g-2 mb-3">
+              <div class="col-6">
+                <label class="form-label fw-500">Quantity</label>
+                <input type="number" class="form-control" id="applianceQty" value="1" min="1" max="20" />
+              </div>
+              <div class="col-6">
+                <label class="form-label fw-500">Hours / Day</label>
+                <input type="number" class="form-control" id="applianceHours" placeholder="e.g. 5" min="0.1" max="24" step="0.5" />
+              </div>
+            </div>
+
+            <!-- Step hint -->
+            <div class="step-hint mb-3">
+              <span class="step-badge">Step 1</span> Fill appliance details above, then click <strong>Add to List</strong>.<br/>
+              <span class="step-badge">Step 2</span> Add more appliances if needed.<br/>
+              <span class="step-badge">Step 3</span> Click <strong>Calculate Consumption</strong> to get results.<br/>
+              <small class="text-muted">💡 Tip: You can also click Calculate directly — it will auto-add the current appliance.</small>
+            </div>
+
+            <button class="btn btn-secondary w-100 btn-animate mb-2" onclick="addAppliance()">
+              <i class="bi bi-plus-lg me-2"></i>Add to List
+            </button>
+            <button class="btn btn-primary w-100 btn-animate" onclick="calculateAppliances()">
+              <i class="bi bi-calculator me-2"></i>Calculate Consumption
+            </button>
+          </div>
+        </div>
+
+        <!-- Added appliance list -->
+        <div class="card-panel mt-4">
+          <div class="card-panel-header d-flex justify-content-between">
+            <h5 class="mb-0"><i class="bi bi-list-ul me-2"></i>My Appliances</h5>
+            <button class="btn-link-sm" onclick="clearAppliances()">Clear all</button>
+          </div>
+          <div class="p-3">
+            <div id="applianceList" class="appliance-list">
+              <div class="empty-state">No appliances added yet.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div class="col-lg-7">
+        <div class="card-panel" id="applianceResults" style="display:none;">
+          <div class="card-panel-header">
+            <h5 class="mb-0"><i class="bi bi-table me-2"></i>Consumption Breakdown</h5>
+          </div>
+          <div class="p-3">
+            <div class="row g-3 mb-4" id="applianceSummaryRow"></div>
+            <div class="table-responsive mb-4">
+              <table class="table table-sm table-hover" id="applianceTable">
+                <thead>
+                  <tr>
+                    <th>Appliance</th><th>Watts</th><th>Qty</th><th>Hrs/Day</th>
+                    <th>kWh/Day</th><th>kWh/Mo</th><th>Cost/Mo (₹)</th>
+                  </tr>
+                </thead>
+                <tbody id="applianceTableBody"></tbody>
+              </table>
+            </div>
+            <div class="chart-container-sm">
+              <canvas id="applianceBarChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CARBON FOOTPRINT SECTION ──────────────── -->
+  <section id="carbon" class="content-section">
+    <div class="section-header mb-4">
+      <h2><i class="bi bi-tree me-2"></i>Carbon Footprint Monitor</h2>
+      <p class="text-muted">Understand your electricity's environmental impact and how to offset it</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-lg-5">
+        <div class="card-panel">
+          <div class="card-panel-header">
+            <h5 class="mb-0"><i class="bi bi-input-cursor me-2"></i>Monthly Usage</h5>
+          </div>
+          <div class="p-3">
+            <div class="mb-3">
+              <label class="form-label fw-500">Monthly Consumption (kWh)</label>
+              <input type="number" class="form-control" id="carbonKwh" placeholder="e.g. 300" min="0" />
+              <div class="form-text">India grid emission factor: 0.82 kg CO₂/kWh (CEA 2023)</div>
+            </div>
+            <button class="btn btn-primary w-100 btn-animate" onclick="calculateCarbon()">
+              <i class="bi bi-calculator me-2"></i>Calculate Footprint
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-7">
+        <div class="card-panel" id="carbonResults" style="display:none;">
+          <div class="card-panel-header">
+            <h5 class="mb-0"><i class="bi bi-cloud-haze2 me-2"></i>Your Carbon Footprint</h5>
+          </div>
+          <div class="p-3">
+            <div class="row g-3 mb-4" id="carbonSummaryRow"></div>
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <div class="equivalence-card">
+                  <div class="eq-icon">🌳</div>
+                  <div class="eq-value" id="eqTrees">—</div>
+                  <div class="eq-label">Trees needed to offset annual CO₂</div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="equivalence-card">
+                  <div class="eq-icon">🚗</div>
+                  <div class="eq-value" id="eqCar">—</div>
+                  <div class="eq-label">Km driven by an average car</div>
+                </div>
+              </div>
+            </div>
+            <div class="chart-container-sm">
+              <canvas id="carbonGauge"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ══════════════════════════════════════════════
+     LOADING OVERLAY
+══════════════════════════════════════════════ -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner">
+    <div class="spinner-ring"></div>
+    <div class="loading-text" id="loadingText">Analysing…</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════════ -->
+<footer class="app-footer">
+  <div class="container text-center">
+    <p class="mb-1">⚡ Smart Home Energy Advisor · Powered by <strong>IBM Watsonx.ai</strong> &amp; <strong>IBM Granite</strong></p>
+    <p class="text-muted small">Built for Indian households · Sydney Region (au-syd) · © 2025</p>
+  </div>
+</footer>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<!-- Custom JS -->
+<script src="/static/js/app.js"></script>
+</body>
+</html>

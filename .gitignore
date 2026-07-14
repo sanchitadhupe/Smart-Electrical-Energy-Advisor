@@ -1,0 +1,23 @@
+﻿# Python cache — never push
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environment — never push
+venv/
+env/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Flask instance
+instance/
+*.db
+*.log
