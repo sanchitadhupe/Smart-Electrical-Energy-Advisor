@@ -36,7 +36,9 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # ── Flask app ─────────────────────────────────────────────────────────────────
-app = Flask(__name__)
+_base_dir = os.path.dirname(os.path.abspath(__file__))
+app = Flask(__name__, template_folder=os.path.join(_base_dir, "templates"),
+            static_folder=os.path.join(_base_dir, "static"))
 
 # Use env var if set; otherwise generate a stable random key so sessions always work.
 _secret = os.getenv("FLASK_SECRET_KEY") or os.urandom(32).hex()

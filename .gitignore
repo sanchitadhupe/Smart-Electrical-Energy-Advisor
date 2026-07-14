@@ -21,3 +21,6 @@ Thumbs.db
 instance/
 *.db
 *.log
+
+# Secrets
+.env
