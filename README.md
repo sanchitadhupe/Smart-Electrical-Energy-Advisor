@@ -188,13 +188,13 @@ In Render, scroll down to **"Environment Variables"** and add these 4 variables:
 
 |---|---|
 
-| `IBM_CLOUD_API_KEY` | `HTvQgAoghVU_sU0A4mHxOjrcOafQ2PcYcEr8Z9wRfHep` |
+| `IBM_CLOUD_API_KEY` | `Enter Your API Key` |
 
-| `IBM_WATSONX_PROJECT_ID` | `4846fb1b-c83c-4c1e-b156-1fcc19200a1e` |
+| `IBM_WATSONX_PROJECT_ID` | `Enter Your Project ID` |
 
-| `IBM_WATSONX_URL` | `https://au-syd.ml.cloud.ibm.com` |
+| `IBM_WATSONX_URL` | `Enter Your Rrgion of Project` |
 
-| `FLASK_SECRET_KEY` | `smart_energy_advisor_secret_2024` |
+| `FLASK_SECRET_KEY` | `smart_energy` |
 
 
 
